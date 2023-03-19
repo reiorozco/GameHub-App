@@ -1,4 +1,3 @@
-import React from "react";
 import { HStack, Image } from "@chakra-ui/react";
 
 import ColorModeSwitch from "./ColorModeSwitch";
