@@ -1,4 +1,6 @@
-import { Box, Button, SimpleGrid, Text } from "@chakra-ui/react";
+import React from "react";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { Box, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
 
 import { GameQuery } from "../App";
 import useGames from "../hooks/useGames";
@@ -25,36 +27,46 @@ function GameGrid({ gameQuery }: Props) {
 
   if (error) return <Text>{error.message}</Text>;
 
+  const fetchedGamesCount =
+    games?.pages.reduce((total, page) => total + page.results.length, 0) || 0;
+
   return (
     <Box padding="10px">
-      <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
-        {isLoading &&
-          skeletons.map((skeleton) => (
-            <GameCardContainer key={skeleton}>
-              <GameCardSkeleton />
-            </GameCardContainer>
-          ))}
-
-        {games?.pages.map((page) => (
-          <>
-            {page.results.map((game) => (
-              <GameCardContainer key={game.id}>
-                <GameCard game={game} />
+      <InfiniteScroll
+        dataLength={fetchedGamesCount}
+        hasMore={!!hasNextPage}
+        next={() => fetchNextPage()}
+        loader={<Spinner />}
+      >
+        <SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+          {isLoading &&
+            skeletons.map((skeleton) => (
+              <GameCardContainer key={skeleton}>
+                <GameCardSkeleton />
               </GameCardContainer>
             ))}
-          </>
-        ))}
-      </SimpleGrid>
 
-      {hasNextPage && (
-        <Button
-          onClick={() => fetchNextPage()}
-          isDisabled={isFetchingNextPage}
-          marginY={5}
-        >
-          {isFetchingNextPage ? "Loading..." : "Load More"}
-        </Button>
-      )}
+          {games?.pages.map((page, index) => (
+            <React.Fragment key={index}>
+              {page.results.map((game) => (
+                <GameCardContainer key={game.id}>
+                  <GameCard game={game} />
+                </GameCardContainer>
+              ))}
+            </React.Fragment>
+          ))}
+        </SimpleGrid>
+      </InfiniteScroll>
+
+      {/*{hasNextPage && (*/}
+      {/*  <Button*/}
+      {/*    onClick={() => fetchNextPage()}*/}
+      {/*    isDisabled={isFetchingNextPage}*/}
+      {/*    marginY={5}*/}
+      {/*  >*/}
+      {/*    {isFetchingNextPage ? "Loading..." : "Load More"}*/}
+      {/*  </Button>*/}
+      {/*)}*/}
     </Box>
   );
 }
